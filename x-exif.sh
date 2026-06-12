@@ -6,8 +6,8 @@ if ! command -v exiftool >/dev/null 2>&1; then
 fi
 
 if [ $# -eq 0 ]; then
-	echo "USAGE: $0 [-cn] [filespec]" #$'\n'
-	echo
+	echo "Usage: $0 [-cn] [filespec]" #$'\n'
+	echo "Options:"
 	echo	$'\t'-c$'\t'"Use Create Date instead of DateTimeOriginal (e.g., for MOV files)."
 	echo	$'\t'-n$'\t'"Dry run."
 	echo
@@ -15,8 +15,6 @@ if [ $# -eq 0 ]; then
 	echo
 	exit 0
 fi
-
-# http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
@@ -41,15 +39,6 @@ shift $((OPTIND-1))
 [ "$1" = "--" ] && shift
 
 echo "cmd=$cmd, argx=$argx Leftovers: $@" #$'\n'
-
-#exit 0
-
-# http://owl.phy.queensu.ca/~phil/exiftool/
-# https://www.cyberciti.biz/faq/bash-for-loop/
-# http://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
-# http://stackoverflow.com/questions/12711786/bash-convert-command-line-arguments-into-array
-# https://www.cyberciti.biz/tips/handling-filenames-with-spaces-in-bash.html
-# http://stackoverflow.com/questions/18271397/find-a-4-digit-number-and-get-the-text-after-them
 
 farray=( "$@" )
 for F in "${farray[@]}"; do
