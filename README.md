@@ -87,31 +87,41 @@ x-exif IMG_*.MOV -- -api QuickTimeUTC=1
 #### `x-exif` as a *thin wrapper*
 
 `x-exif` is deliberately a *thin wrapper*: it contains no metadata logic of its
-own. All it does is ask ExifTool for one timestamp per file, normalize that
-into a sortable `YYYY-MM-DD_HH.MM.SS_` prefix, and rename the file group. The
-two ways it calls ExifTool are:
+own — not even date parsing. It asks ExifTool for one already-formatted
+timestamp per file and lets ExifTool do all the work of reading the tag and
+rendering it; the script only prepends that string to the original name and
+renames the file group. The single call it makes is:
 
 ```sh
-# Default (-DateTimeOriginal), used for stills such as JPEG:
-exiftool -DateTimeOriginal "$F"
-
-# With -c, it reads the "Create Date" tag instead (e.g. for MOV video):
-exiftool "$F" | grep "^Create Date"
+# -d formats the timestamp, -s3 prints the value only (empty if absent).
+# $tag is DateTimeOriginal by default, or CreateDate with -c (e.g. MOV video).
+exiftool -d '%Y-%m-%d_%H.%M.%S' -s3 -"$tag" "$F"
 ```
 
+That one command yields, e.g., `2018-05-22_14.59.38`, which becomes the
+filename prefix. Letting ExifTool's `-d` formatter produce the timestamp means
+time zones, sub-second values, and the quirks of every file format are handled
+by ExifTool rather than by brittle text munging in the script.
+
+> **Why not just use ExifTool to rename?** ExifTool can rename by date on its
+> own (`exiftool '-FileName<DateTimeOriginal' -d '%Y-%m-%d_%H.%M.%S_%%f.%%e'`),
+> and for a lone file you should. `x-exif` exists for the one thing that
+> one-liner can't do: it also sweeps the **non-metadata sidecars** —
+> `.sha256` hashes, XMP companions, etc. — so the whole `IMG_4747.*` group is
+> renamed together instead of orphaning files ExifTool can't read a date from.
+
 Because ExifTool understands so many formats and tags, anything it can read a
-date out of, `x-exif` can rename. The two tags above cover the common cases,
-but you can reach the rest of ExifTool's enormous feature set directly:
-everything after `--` on the `x-exif` command line is forwarded verbatim to
-ExifTool. For example, to make ExifTool interpret QuickTime timestamps as local
-time:
+date out of, `x-exif` can rename. You can also reach the rest of ExifTool's
+enormous feature set directly: everything after `--` on the `x-exif` command
+line is forwarded verbatim to ExifTool. For example, to make ExifTool interpret
+QuickTime timestamps as local time:
 
 ```sh
 x-exif IMG_*.MOV -- -api QuickTimeUTC=1
 ```
 
-To explore what metadata your own files carry, run ExifTool directly — this is
-exactly the kind of output `x-exif` is parsing:
+To explore what metadata your own files carry, run ExifTool directly — these
+show the tags `x-exif` selects from:
 
 ```sh
 exiftool -time:all -G1 -a -s IMG_4747.JPG   # show every date/time tag
