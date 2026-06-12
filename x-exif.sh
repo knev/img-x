@@ -40,6 +40,11 @@ shift $((OPTIND-1))
 
 echo "cmd=$cmd, argx=$argx Leftovers: $@" #$'\n'
 
+# generalize: 
+# if IMG_4747.JPG is being processed, then all files IMG_4747.* will be renamed with the new base. 
+# Then for each of the files IMG_4747.* found (e.g., IMG_4747.JPG and IMG_4747.XMP) all files starting with 
+# IMG_4747.JPG.* should also have their base renamed as well as IMG_4747.XMP.*
+
 farray=( "$@" )
 for F in "${farray[@]}"; do
 	echo "* $F" #$'\n\n'
@@ -53,7 +58,15 @@ for F in "${farray[@]}"; do
 
 	DATE=`echo $EXIF | cut -f1 -d" " | sed s/:/-/g `
 	TIME=`echo $EXIF | cut -f2 -d" " | sed s/:/./g `
-	FN=$DATE\_$TIME\_${F%.*}
+	STEM=${F%.*}                            # _MISC/IMG_4563  (or IMG_4563)
+	if [ "$STEM" != "${STEM%/*}" ]; then    # has a directory component?
+		DIR="${STEM%/*}/"               # _MISC/
+		NAME="${STEM##*/}"              # IMG_4563
+	else
+		DIR=""
+		NAME="$STEM"
+	fi
+	FN=${DIR}${DATE}_${TIME}_${NAME}        # _MISC/2018-05-03_11.31.17_IMG_4563
 
 	OK=`echo $FN | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}_[0-9]\{2\}.[0-9]\{2\}.[0-9]\{2\}'`
 	if [ -z "$OK" ]; then
@@ -62,8 +75,17 @@ for F in "${farray[@]}"; do
 	fi
 
 	echo "  [$FN]"
-	$cmd "${F%.*}.${F##*.}" "$FN.${F##*.}"
-	if [ -f "${F%.*}.XMP" ]; then
-		$cmd "${F%.*}.XMP" "$FN.XMP"
+	if [ "$cmd" = "echo" ]; then           # dry run: aligned "src → dst" listing
+		w=0
+		for G in "$STEM".*; do
+			[ ${#G} -gt $w ] && w=${#G}
+		done
+		for G in "$STEM".*; do
+			printf "  %-*s → %s\n" "$w" "$G" "$FN${G#$STEM}"
+		done
+	else
+		for G in "$STEM".*; do
+			$cmd "$G" "$FN${G#$STEM}"
+		done
 	fi
 done
