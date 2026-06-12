@@ -11,6 +11,11 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+if ! command -v exiftool >/dev/null 2>&1; then
+	echo "ERROR: exiftool not found. Install it from: https://exiftool.org/" >&2
+	exit 1
+fi
+
 # http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
 
 # A POSIX variable
@@ -54,7 +59,7 @@ for F in "${farray[@]}"; do
 	if [ "$tag" == "DateTimeOriginal" ]; then
 		EXIF=`exiftool -DateTimeOriginal "$F" | cut -f2-7 -d:` #JPG
 	else
-		EXIF=`exiftool $F | grep "^Create Date" | cut -f2-6 -d:` #MOV
+		EXIF=`exiftool "$F" | grep "^Create Date" | cut -f2-6 -d:` #MOV
 	fi
 
 	DATE=`echo $EXIF | cut -f1 -d" " | sed s/:/-/g `
