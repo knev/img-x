@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if ! command -v exiftool >/dev/null 2>&1; then
+	echo "ERROR: exiftool not found. Install it from: https://exiftool.org/" >&2
+	exit 1
+fi
+
 if [ $# -eq 0 ]; then
 	echo "USAGE: $0 [-cn] [filespec]" #$'\n'
 	echo
@@ -9,11 +14,6 @@ if [ $# -eq 0 ]; then
 	echo	$'\t'"EX: x-exif -n [^0-9]*"
 	echo
 	exit 0
-fi
-
-if ! command -v exiftool >/dev/null 2>&1; then
-	echo "ERROR: exiftool not found. Install it from: https://exiftool.org/" >&2
-	exit 1
 fi
 
 # http://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
