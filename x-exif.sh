@@ -27,7 +27,7 @@ tag="DateTimeOriginal"
 
 while getopts "cn" opt; do
     case "$opt" in
-    c)  tag="Create Date"
+    c)  tag="CreateDate"
 	;;
     n)  cmd="echo"
         ;;
@@ -63,15 +63,14 @@ farray=( "${files[@]}" )
 for F in "${farray[@]}"; do
 	echo "* $F" #$'\n\n'
 
-	#EXIF=`identify -verbose $F | grep DateTimeOriginal | cut -f3-7 -d:`
-	if [ "$tag" == "DateTimeOriginal" ]; then
-		EXIF=`exiftool "${exifopts[@]}" -DateTimeOriginal "$F" | cut -f2-7 -d:` #JPG
-	else
-		EXIF=`exiftool "${exifopts[@]}" "$F" | grep "^Create Date" | cut -f2-6 -d:` #MOV
+	# Let ExifTool read the tag and format the timestamp; -s3 prints the
+	# value only, empty if the tag is absent.
+	DT=`exiftool "${exifopts[@]}" -d '%Y-%m-%d_%H.%M.%S' -s3 -"$tag" "$F"`
+	if [ -z "$DT" ]; then
+		echo "  NO DateTime extracted"
+		continue;
 	fi
 
-	DATE=`echo $EXIF | cut -f1 -d" " | sed s/:/-/g `
-	TIME=`echo $EXIF | cut -f2 -d" " | sed s/:/./g `
 	STEM=${F%.*}                            # _MISC/IMG_4563  (or IMG_4563)
 	if [ "$STEM" != "${STEM%/*}" ]; then    # has a directory component?
 		DIR="${STEM%/*}/"               # _MISC/
@@ -80,13 +79,7 @@ for F in "${farray[@]}"; do
 		DIR=""
 		NAME="$STEM"
 	fi
-	FN=${DIR}${DATE}_${TIME}_${NAME}        # _MISC/2018-05-03_11.31.17_IMG_4563
-
-	OK=`echo $FN | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}_[0-9]\{2\}.[0-9]\{2\}.[0-9]\{2\}'`
-	if [ -z "$OK" ]; then
-		echo "  NO DateTime extracted"
-		continue;
-	fi
+	FN=${DIR}${DT}_${NAME}                  # _MISC/2018-05-03_11.31.17_IMG_4563
 
 	echo "  [$FN]"
 	if [ "$cmd" = "echo" ]; then           # dry run: aligned "src → dst" listing
