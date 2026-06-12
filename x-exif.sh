@@ -6,12 +6,14 @@ if ! command -v exiftool >/dev/null 2>&1; then
 fi
 
 if [ $# -eq 0 ]; then
-	echo "Usage: $0 [-cn] [filespec]" #$'\n'
+	echo "Usage: $0 [-cn] [filespec] [-- exiftool-options]" #$'\n'
 	echo "Options:"
 	echo	$'\t'-c$'\t'"Use Create Date instead of DateTimeOriginal (e.g., for MOV files)."
 	echo	$'\t'-n$'\t'"Dry run."
+	echo	$'\t'--$'\t'"Pass any following arguments through to exiftool."
 	echo
 	echo	$'\t'"EX: x-exif -n [^0-9]*"
+	echo	$'\t'"EX: x-exif IMG_*.MOV -- -api QuickTimeUTC=1"
 	echo
 	exit 0
 fi
