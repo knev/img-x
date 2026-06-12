@@ -23,37 +23,49 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 cmd="mv"
 tag="DateTimeOriginal"
 
-while getopts "cnx:" opt; do
+while getopts "cn" opt; do
     case "$opt" in
     c)  tag="Create Date"
 	;;
     n)  cmd="echo"
         ;;
-    x)  argx="$OPTARG"
-	;;
     esac
 done
 
 shift $((OPTIND-1))
 
-[ "$1" = "--" ] && shift
+# Split positionals at "--": files before, extra exiftool options after.
+files=()
+exifopts=()
+seen_dd=0
+for a in "$@"; do
+	if [ $seen_dd -eq 0 ] && [ "$a" = "--" ]; then
+		seen_dd=1
+		continue
+	fi
+	if [ $seen_dd -eq 0 ]; then
+		files+=("$a")
+	else
+		exifopts+=("$a")
+	fi
+done
 
-echo "cmd=$cmd, argx=$argx Leftovers: $@" #$'\n'
+echo "cmd=$cmd, exifopts=${exifopts[*]} Files: ${files[*]}" #$'\n'
 
 # generalize: 
 # if IMG_4747.JPG is being processed, then all files IMG_4747.* will be renamed with the new base. 
 # Then for each of the files IMG_4747.* found (e.g., IMG_4747.JPG and IMG_4747.XMP) all files starting with 
 # IMG_4747.JPG.* should also have their base renamed as well as IMG_4747.XMP.*
 
-farray=( "$@" )
+farray=( "${files[@]}" )
 for F in "${farray[@]}"; do
 	echo "* $F" #$'\n\n'
 
 	#EXIF=`identify -verbose $F | grep DateTimeOriginal | cut -f3-7 -d:`
 	if [ "$tag" == "DateTimeOriginal" ]; then
-		EXIF=`exiftool -DateTimeOriginal "$F" | cut -f2-7 -d:` #JPG
+		EXIF=`exiftool "${exifopts[@]}" -DateTimeOriginal "$F" | cut -f2-7 -d:` #JPG
 	else
-		EXIF=`exiftool "$F" | grep "^Create Date" | cut -f2-6 -d:` #MOV
+		EXIF=`exiftool "${exifopts[@]}" "$F" | grep "^Create Date" | cut -f2-6 -d:` #MOV
 	fi
 
 	DATE=`echo $EXIF | cut -f1 -d" " | sed s/:/-/g `
