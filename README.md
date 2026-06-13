@@ -57,13 +57,14 @@ A file whose date cannot be extracted is reported and left untouched.
 **Usage**
 
 ```
-x-exif [-cn] [filespec] [-- exiftool-options]
+x-exif [-cn] [-f:m|-f:c] [filespec] [-- exiftool-options]
 ```
 
 | Option | Effect |
 | ------ | ------ |
 | `-c`   | Use `Create Date` instead of `DateTimeOriginal` (e.g. for MOV files). |
 | `-n`   | Dry run — print the `source → destination` renames without moving anything. |
+| `-f:m` / `-f:c` | Use a **filesystem** date instead of the EXIF date: `:m` = file modify date, `:c` = file create (birth) date. For files ExifTool can't read a date from. |
 | `--`   | Pass any following arguments through to `exiftool`. |
 
 **Examples**
@@ -77,6 +78,9 @@ x-exif IMG_*.JPG
 
 # MOV files, using Create Date:
 x-exif -c *.MOV
+
+# Files with no readable EXIF date — use the filesystem modify date instead:
+x-exif -f:m *.JPG
 
 # Forward extra options to exiftool:
 x-exif IMG_*.MOV -- -api QuickTimeUTC=1
@@ -102,6 +106,14 @@ That one command yields, e.g., `2018-05-22_14.59.38`, which becomes the
 filename prefix. Letting ExifTool's `-d` formatter produce the timestamp means
 time zones, sub-second values, and the quirks of every file format are handled
 by ExifTool rather than by brittle text munging in the script.
+
+The one exception is `-f`: for files ExifTool can't read a date from, it takes
+the prefix from a **filesystem** date instead — read directly with `stat` (BSD
+`stat -f` on macOS, GNU `stat -c` on Linux) and formatted with `date`. This is
+not metadata, so it doesn't go through ExifTool. On Linux the file *create*
+(birth) date is often unavailable; when it is, the file is reported as
+`NO DateTime extracted` and left untouched rather than substituting another
+date.
 
 > **Why not just use ExifTool to rename?** ExifTool can rename by date on its
 > own (`exiftool '-FileName<DateTimeOriginal' -d '%Y-%m-%d_%H.%M.%S_%%f.%%e'`),
