@@ -155,13 +155,11 @@ for F in "${farray[@]}"; do
 	        epoch=$(fs_epoch "$fallback" "$F")
 	        case "$epoch" in
 	        ''|*[!0-9]*|0)  DT="" ;;                # absent (e.g. Linux birthtime)
-	        *)              DT=$(fmt_epoch "$epoch")
-	                        echo "  (filesystem $fallbackdesc date)" ;;
+	        *)              DT=$(fmt_epoch "$epoch") ;;
 	        esac
 	        ;;
 	f)      # User chose the date embedded in the filename.
 	        DT=$(fname_date "${F##*/}")
-	        [ -n "$DT" ] && echo "  (filename date)"
 	        ;;
 	esac
 	if [ -z "$DT" ]; then
@@ -179,7 +177,12 @@ for F in "${farray[@]}"; do
 	fi
 	FN=${DIR}${DT}_${NAME}                  # _MISC/2018-05-03_11.31.17_IMG_4563
 
-	echo "  [$FN]"
+	printf '  [%s]' "$FN"
+	case "$fallback" in
+	m|c) printf '  (filesystem %s date)' "$fallbackdesc" ;;
+	f)   printf '  (filename date)' ;;
+	esac
+	echo
 	if [ "$cmd" = "echo" ]; then           # dry run: aligned "src → dst" listing
 		w=0
 		for G in "$STEM".*; do
