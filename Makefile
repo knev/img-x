@@ -20,6 +20,7 @@ nothing:
 
 install:
 	@cp -v ./${SH} ~/bin/${BIN}
+	gv --bash ~/bin/${BIN}
 	chmod +x ~/bin/${BIN}
 
 # clean:

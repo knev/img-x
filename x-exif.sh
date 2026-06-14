@@ -1,5 +1,7 @@
 #!/bin/bash
 
+VERSION=
+
 if ! command -v exiftool >/dev/null 2>&1; then
 	echo "ERROR: exiftool not found. Install it from: https://exiftool.org/" >&2
 	exit 1
