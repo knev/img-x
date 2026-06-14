@@ -3,21 +3,29 @@
 VERSION=
 
 usage() {
-	echo "Usage: $0 [-cn] [-f:m|-f:c|-f:f] [filespec] [-- exiftool-options]"
-	echo "Options:"
-	echo	$'\t'-c$'\t'"Use Create Date instead of DateTimeOriginal (e.g., for MOV files)."
-	echo	$'\t'-n$'\t'"Dry run."
-	echo	$'\t'-f$'\t'"Use a non-EXIF date source instead of the EXIF date:"
-	echo	$'\t'$'\t'"  :m = file modify date, :c = file create (birth) date,"
-	echo	$'\t'$'\t'"  :f = date parsed from the filename (YYYY-MM-DD or YYYYMMDD)."
-	echo	$'\t'--$'\t'"Pass any following arguments through to exiftool."
-	echo	$'\t'"-h, --help"$'\t'"Show this help and exit."
-	echo	$'\t'"-v, --version"$'\t'"Print the version (vX.Y.Z) and exit."
+	local p="${0##*/}"
+	echo "Usage: $p [-cn] [-f:m|-f:c|-f:f] [files…] [-- exiftool-opts]"
 	echo
-	echo	$'\t'"EX: x-exif -n [^0-9]*"
-	echo	$'\t'"EX: x-exif -f:m *.JPG"
-	echo	$'\t'"EX: x-exif -f:f *.jpg"
-	echo	$'\t'"EX: x-exif IMG_*.MOV -- -api QuickTimeUTC=1"
+	echo "Rename each file to a sortable, timestamp-prefixed name from its EXIF"
+	echo "capture date (or another source via -f). Sidecars sharing the same base"
+	echo "name are renamed along with it. Files with no usable date are left as-is."
+	echo
+	echo "Options:"
+	printf '  %-16s%s\n' "-c"            "use CreateDate instead of DateTimeOriginal (e.g. MOV)"
+	printf '  %-16s%s\n' "-n"            "dry run — print the renames, change nothing"
+	printf '  %-16s%s\n' "-f:m"          "non-EXIF date — file modify date"
+	printf '  %-16s%s\n' "-f:c"          "non-EXIF date — file create (birth) date"
+	printf '  %-16s%s\n' "-f:f"          "non-EXIF date — parsed from the filename (YYYY-MM-DD / YYYYMMDD)"
+	printf '  %-16s%s\n' "--"            "pass any following arguments through to exiftool"
+	printf '  %-16s%s\n' "-h, --help"    "show this help and exit"
+	printf '  %-16s%s\n' "-v, --version" "print the version (vX.Y.Z) and exit"
+	echo
+	echo "Examples:"
+	printf '  %-42s%s\n' "$p -n [^0-9]*"                  "# preview renames, change nothing"
+	printf '  %-42s%s\n' "$p *.JPG"                       "# rename a batch of stills"
+	printf '  %-42s%s\n' "$p -c *.MOV"                    "# MOV video, by CreateDate"
+	printf '  %-42s%s\n' "$p -f:f IMG_*.jpg"              "# date taken from the filename"
+	printf '  %-42s%s\n' "$p *.MOV -- -api QuickTimeUTC=1" "# forward options to exiftool"
 	echo
 }
 
