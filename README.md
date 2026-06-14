@@ -58,6 +58,8 @@ A file whose date cannot be extracted is reported and left untouched.
 
 ```
 x-exif [-cn] [-f:m|-f:c|-f:f] [filespec] [-- exiftool-options]
+x-exif -h | --help
+x-exif -v | --version
 ```
 
 | Option | Effect |
@@ -67,6 +69,8 @@ x-exif [-cn] [-f:m|-f:c|-f:f] [filespec] [-- exiftool-options]
 | `-f:m` / `-f:c` | Use a **filesystem** date instead of the EXIF date: `:m` = file modify date, `:c` = file create (birth) date. For files ExifTool can't read a date from. |
 | `-f:f` | Use the date embedded in the **filename**: the first valid `YYYY-MM-DD` or `YYYYMMDD` (with an optional trailing `HHMMSS` time). E.g. `IMG_20261012_120000.jpg` → `2026-10-12_12.00.00_…`. |
 | `--`   | Pass any following arguments through to `exiftool`. |
+| `-h` / `--help` | Show usage help and exit. |
+| `-v` / `--version` | Print the version (`vX.Y.Z`) and exit. |
 
 **Examples**
 

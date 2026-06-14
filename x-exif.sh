@@ -2,13 +2,8 @@
 
 VERSION=
 
-if ! command -v exiftool >/dev/null 2>&1; then
-	echo "ERROR: exiftool not found. Install it from: https://exiftool.org/" >&2
-	exit 1
-fi
-
-if [ $# -eq 0 ]; then
-	echo "Usage: $0 [-cn] [-f:m|-f:c|-f:f] [filespec] [-- exiftool-options]" #$'\n'
+usage() {
+	echo "Usage: $0 [-cn] [-f:m|-f:c|-f:f] [filespec] [-- exiftool-options]"
 	echo "Options:"
 	echo	$'\t'-c$'\t'"Use Create Date instead of DateTimeOriginal (e.g., for MOV files)."
 	echo	$'\t'-n$'\t'"Dry run."
@@ -16,12 +11,33 @@ if [ $# -eq 0 ]; then
 	echo	$'\t'$'\t'"  :m = file modify date, :c = file create (birth) date,"
 	echo	$'\t'$'\t'"  :f = date parsed from the filename (YYYY-MM-DD or YYYYMMDD)."
 	echo	$'\t'--$'\t'"Pass any following arguments through to exiftool."
+	echo	$'\t'"-h, --help"$'\t'"Show this help and exit."
+	echo	$'\t'"-v, --version"$'\t'"Print the version (vX.Y.Z) and exit."
 	echo
 	echo	$'\t'"EX: x-exif -n [^0-9]*"
 	echo	$'\t'"EX: x-exif -f:m *.JPG"
 	echo	$'\t'"EX: x-exif -f:f *.jpg"
 	echo	$'\t'"EX: x-exif IMG_*.MOV -- -api QuickTimeUTC=1"
 	echo
+}
+
+# -h/--help and -v/--version: handle before anything else (need no exiftool).
+# Stop at "--" so a flag meant for exiftool isn't intercepted here.
+for a in "$@"; do
+	case "$a" in
+	--)           break ;;
+	-h|--help)    usage; exit 0 ;;
+	-v|--version) echo "v$VERSION"; exit 0 ;;  # gv fills VERSION as x.y.z (no 'v')
+	esac
+done
+
+if ! command -v exiftool >/dev/null 2>&1; then
+	echo "ERROR: exiftool not found. Install it from: https://exiftool.org/" >&2
+	exit 1
+fi
+
+if [ $# -eq 0 ]; then
+	usage
 	exit 0
 fi
 
